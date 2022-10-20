@@ -520,7 +520,6 @@ fun PokemonDetailDataSection(
         ability += i.ability.name + ", "
     }
 
-    pokemonInfo.egg
 
 
     Column() {
