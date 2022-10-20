@@ -9,7 +9,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.demo.pokedox.pokemonlist.PokemonDetailScreen
+import com.demo.pokedox.pokemon.PokemonDetailScreen
 import com.demo.pokedox.pokemonlist.PokemonListScreen
 import java.util.*
 
@@ -23,14 +23,18 @@ fun NavGraph (navController: NavHostController){
             PokemonListScreen(navController)
         }
 
-        composable("pokemon_detail_screen/{dominantColor}/{pokemonName}",
+        composable("pokemon_detail_screen/{dominantColor}/{pokemonName}/{pokemonId}",
             arguments = listOf(
                 navArgument("dominantColor"){
                     type = NavType.IntType
                 },
                 navArgument("pokemonName"){
                     type = NavType.StringType
-                }
+                },
+                navArgument("pokemonId"){
+                    type = NavType.IntType
+                },
+
             )){
             val dominantColor = remember {
                 val  color = it.arguments?.getInt("dominantColor")
@@ -41,9 +45,14 @@ fun NavGraph (navController: NavHostController){
                 it.arguments?.getString("pokemonName")
             }
 
+            val pokemonId = remember {
+                it.arguments?.getInt("pokemonId")
+            }
+
             PokemonDetailScreen(
                 dominantColor = dominantColor ,
                 pokemonName = pokemonName?.toLowerCase(Locale.ROOT)?:"",
+                pokemonId= pokemonId!!,
                 navController = navController)
         }
     }

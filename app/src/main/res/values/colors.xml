@@ -8,4 +8,5 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="theme_color">#DEEDED</color>
+    <color name="border_color">#2E3156</color>
 </resources>

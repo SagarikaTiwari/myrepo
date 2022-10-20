@@ -14,13 +14,14 @@ private val DarkColorPalette = darkColors(
     onBackground = Color.White,
     surface = Color(0xFF303030),
     onSurface = Color.White
+
 )
 
 private val LightColorPalette = lightColors(
     primary = Color.Blue,
     background = LightBlue,
     onBackground = Color.Black,
-    surface = Color.White,
+    surface = Color(0xffdeeded),
     onSurface = Color.Black
 )
 

@@ -20,6 +20,7 @@ import coil.imageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.demo.pokedox.data.models.PokedexListEntry
+import com.demo.pokedox.data.remote.responses.Type
 import com.demo.pokedox.util.Constants
 import com.demo.pokedox.util.Constants.PAGE_SIZE
 import com.demo.pokedox.util.Resource
@@ -78,6 +79,8 @@ class PokemonListViewModel @Inject constructor(
                         it.number.toString() == query.trim()
             }
 
+
+
             if (isSearchStarting) {
                 cachedPokemonList = pokemonList.value
                 isSearchStarting = false
@@ -107,6 +110,15 @@ class PokemonListViewModel @Inject constructor(
                     // fetching image url from the given url by replacing digit in the url
                     val pokedexEntries = result.data.results.mapIndexed { index, entry ->
 
+                        val pokemonResult = repository.getPokemonInfo(entry.name)
+                        var typeList : List<Type> = emptyList()
+                        when(pokemonResult){
+                            is Resource.Success->{
+                                 typeList = pokemonResult.data!!.types
+                            }
+                            else -> {}
+                        }
+
                         val number = if (entry.url.endsWith("/")) {
 
                             entry.url.dropLast(1).takeLastWhile {
@@ -119,19 +131,22 @@ class PokemonListViewModel @Inject constructor(
                             }
                         }
 
-                        //   val imageurl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${number}"
+
+                            //val imageurl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${number}.png"
+
 
                         //   val imageurl = "https://pokeres.bastionbot.org/images/pokemon/${number}.png"
 
 
                         val name = entry.name
-                        val imageurl = "https://img.pokemondb.net/artwork/large/${name}.jpg"
+                       val imageurl = "https://img.pokemondb.net/artwork/large/${name}.jpg"
 
 
                         PokedexListEntry(
                             entry.name.capitalize(Locale.ROOT),
                             imageurl,
-                            number.toInt()
+                            number.toInt(),
+                            typeList
                         )
                     }
                     curPage++
@@ -167,5 +182,10 @@ class PokemonListViewModel @Inject constructor(
         }
     }
 
+    fun onQueryChanged(it: Any) {
+
+    }
+
 
 }
+

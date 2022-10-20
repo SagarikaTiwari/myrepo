@@ -1,7 +1,7 @@
 package com.demo.pokedox.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.demo.pokedox.data.remote.responses.Pokemon
+import com.demo.pokedox.data.remote.responses.*
 import com.demo.pokedox.navigation.Screens
 import com.demo.pokedox.repository.PokemonRepository
 import com.demo.pokedox.util.Resource
@@ -15,5 +15,21 @@ class PokemonDetailViewModel @Inject constructor(
 
     suspend  fun getPokemonInfo(pokemonName : String): Resource<Pokemon>{
         return repository.getPokemonInfo(pokemonName)
+    }
+
+    suspend fun getPokemonDescription(pokemonName : String): Resource<PokemonDescription> {
+        return repository.getPokemonDescription(pokemonName)
+    }
+
+    suspend fun getPokemonType(number : String):Resource<PokemonType>{
+        return repository.getPokemonTypeForWeaknessandability(number)
+    }
+
+    suspend fun getPokemonEvolutionChain(number : String):Resource<PokemonEvolutionChain>{
+        return repository.getPokemonEvolutionChain(number)
+    }
+
+    suspend fun getPokemonGender(number : String): Resource<PokemonGender> {
+    return repository.getPokemonGender(number)
     }
 }

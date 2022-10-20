@@ -1,15 +1,21 @@
 package com.demo.pokedox.pokemonlist
 
+import Roboto
 import RobotoCondensed
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,20 +28,33 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight.Companion.Bold
+import androidx.compose.ui.text.font.FontWeight.Companion.Normal
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph
 import coil.compose.*
 import coil.request.ImageRequest
 import com.demo.pokedox.R
 import com.demo.pokedox.data.models.PokedexListEntry
+import com.demo.pokedox.data.remote.responses.Type
+import com.demo.pokedox.util.PokemonParser
 import com.demo.pokedox.viewmodel.PokemonListViewModel
+import com.plcoding.jetpackcomposepokedex.ui.theme.searchBarBackgroundColor
+import dashedBorder
 import kotlinx.coroutines.launch
 
 @Composable
@@ -43,6 +62,8 @@ fun PokemonListScreen(
     navController: NavController,
     viewModel: PokemonListViewModel = hiltViewModel()
 ) {
+
+
     Surface(
         color = MaterialTheme.colors.background,
         modifier = Modifier.fillMaxSize()
@@ -50,30 +71,74 @@ fun PokemonListScreen(
 
         Column {
             Spacer(modifier = Modifier.height(20.dp))
-            Image(
-                painter = painterResource(id = R.drawable.ic_international_pok_mon_logo),
-                contentDescription = "Pokemon Logo",
+
+            Text(
+                text = "Pokédex",
+                fontFamily = Roboto,
+                fontSize = 40.sp,
+                fontWeight = Bold,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                color = Color(0xff2e3156)
+            )
+
+            Spacer(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(15.dp)
-                    .align(CenterHorizontally)
+                    .height(1.dp)
+                    .background(Color.Transparent)
+                    .padding(start = 20.dp, end = 20.dp)
+                    .border(3.dp, color = Color(0xff2e3156))
             )
-            SearchBar(
-                hint = "Search...",
-                modifier = Modifier
-                    .padding(25.dp)
+
+
+            Text(
+                text = "Search for any Pokémon that exists on the planet",
+                fontFamily = Roboto,
+                fontSize = 18.sp,
+                fontWeight = Normal,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                color = Color(0xff2e3156)
+            )
+
+
+
+            Row(
+                modifier = Modifier.padding(start = 20.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                viewModel.searchPokemonList(it)
+
+
+                SearchBar(
+                    hint = "Name or number",
+                    modifier = Modifier
+                        .fillMaxWidth(07f)
+                        .background(MaterialTheme.colors.primary)
+                        .clip(RectangleShape)
+                ) {
+                    viewModel.searchPokemonList(it)
+                }
+
+
+                Image(
+                    painter = painterResource(id = R.drawable.filter_icon),
+                    contentDescription = "Pokemon Logo",
+                    modifier = Modifier
+                        .fillMaxWidth(1f)
+                        .padding(15.dp)
+                )
             }
 
-            Spacer(modifier = Modifier.height(15.dp))
+
+
             PokemonList(navController = navController)
 
-        }
 
+        }
     }
 
 }
+
 
 @Composable
 fun SearchBar(
@@ -90,10 +155,10 @@ fun SearchBar(
     }
 
     Box(
-        contentAlignment = Center,
+        contentAlignment = Alignment.CenterStart,
         modifier = Modifier
     ) {
-        BasicTextField(
+        TextField(
             value = text,
             onValueChange = {
                 text = it
@@ -102,21 +167,34 @@ fun SearchBar(
             maxLines = 1,
             singleLine = true,
             textStyle = TextStyle(color = Color.Black),
+            trailingIcon = {
+                Icon(
+                    Icons.Default.Search,
+                    contentDescription = "",
+                    modifier = Modifier
+                        .padding(15.dp)
+                        .size(24.dp)
+                )
+            },
             modifier = Modifier
-                .fillMaxWidth()
-                .shadow(5.dp, CircleShape)
-                .background(Color.White, CircleShape)
-                .padding(horizontal = 20.dp, vertical = 12.dp)
+                .fillMaxWidth(0.7f)
+                .background(Color(0xffc9dde2), RoundedCornerShape(5.dp))
                 .onFocusChanged {
                     isHintDisplayed = !(it.isFocused)
 
-                }
+                },
+            colors = TextFieldDefaults.textFieldColors(
+                disabledTextColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent
+            )
         )
 
         if (isHintDisplayed) {
             Text(
                 text = hint,
-                color = Color.LightGray,
+                color = Color(0x5c5f7e80),
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
             )
 
@@ -130,9 +208,9 @@ fun SearchBar(
 @Composable
 fun PokemonList(
     navController: NavController,
-    viewModel: PokemonListViewModel = hiltViewModel()
+    viewModel: PokemonListViewModel = hiltViewModel(),
 
-) {
+    ) {
     val pokemonList by remember { viewModel.pokemonList }
     val endReached by remember { viewModel.endReached }
     val loadError by remember { viewModel.loadError }
@@ -193,25 +271,43 @@ fun PokedexEntry(
     var dominantColor by remember {
         mutableStateOf(defaultDominantColor)
     }
+    var colorList = mutableListOf<Color>()
+     if (entry.typeList.size > 1) {
+        for (i in entry.typeList) {
+            colorList.add(PokemonParser.getTypeColor(i))
+         }
+    } else {
+        for (i in entry.typeList) {
+            colorList.add(PokemonParser.getTypeColor(i))
+
+        }
+        for (i in entry.typeList) {
+            colorList.add(PokemonParser.getTypeColor(i))
+
+        }
+    }
+
 
     Box(
         modifier = modifier
             .shadow(5.dp, RoundedCornerShape(10.dp))
             .clip(RoundedCornerShape(10.dp))
             .aspectRatio(1f)
+            .dashedBorder(
+                width = 1.dp,
+                color = colorResource(id = R.color.border_color),
+                shape = MaterialTheme.shapes.small, on = 5.dp, off = 5.dp
+            )
             .background(
 
                 Brush.verticalGradient(
+                    colors = colorList
 
-                    listOf(
-                        dominantColor,
-                        defaultDominantColor
-                    )
                 )
             )
             .clickable {
 
-                navController.navigate("pokemon_detail_screen/${dominantColor.toArgb()}/${entry.pokemonName}")
+                navController.navigate("pokemon_detail_screen/${dominantColor.toArgb()}/${entry.pokemonName}/${entry.number}")
             }
 
     ) {
@@ -220,9 +316,8 @@ fun PokedexEntry(
 
 
             val painter = rememberAsyncImagePainter(
-                model = entry.imageUrl
+                entry.imageUrl
             )
-            val painterState = painter.state
             Image(
                 painter = painter,
                 contentDescription = entry.pokemonName,
@@ -230,23 +325,6 @@ fun PokedexEntry(
                     .size(120.dp)
                     .align(CenterHorizontally),
             )
-            if (painterState is AsyncImagePainter.State.Loading) {
-                CircularProgressIndicator(
-                    color = MaterialTheme.colors.primary,
-                    modifier = Modifier
-                        .scale(0.5f)
-                        .align(CenterHorizontally)
-                )
-            } else if (painterState is AsyncImagePainter.State.Success) {
-                LaunchedEffect(key1 = painter) {
-                    launch {
-                        val image = painter.imageLoader.execute(painter.request).drawable
-                        viewModel.calcDominantColor(image!!) {
-                            dominantColor = it
-                        }
-                    }
-                }
-            }
 
 
 
@@ -320,5 +398,58 @@ fun RetrySection(
         }
 
     }
+}
+
+
+@Composable
+fun SearchView(state: MutableState<TextFieldValue>) {
+    TextField(
+        value = state.value,
+        onValueChange = { value ->
+            state.value = value
+        },
+        modifier = Modifier
+            .fillMaxWidth(),
+        textStyle = TextStyle(color = Color.White, fontSize = 18.sp),
+        leadingIcon = {
+            Icon(
+                Icons.Default.Search,
+                contentDescription = "",
+                modifier = Modifier
+                    .padding(15.dp)
+                    .size(24.dp)
+            )
+        },
+        trailingIcon = {
+            if (state.value != TextFieldValue("")) {
+                IconButton(
+                    onClick = {
+                        state.value =
+                            TextFieldValue("") // Remove text from TextField when you press the 'X' icon
+                    }
+                ) {
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = "",
+                        modifier = Modifier
+                            .padding(15.dp)
+                            .size(24.dp)
+                    )
+                }
+            }
+        },
+        singleLine = true,
+        shape = RectangleShape, // The TextFiled has rounded corners top left and right by default
+        colors = TextFieldDefaults.textFieldColors(
+            textColor = Color.White,
+            cursorColor = Color.White,
+            leadingIconColor = Color.White,
+            trailingIconColor = Color.White,
+            backgroundColor = colorResource(id = R.color.teal_200),
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent
+        )
+    )
 }
 
