@@ -50,7 +50,6 @@ import kotlin.math.round
 
 @Composable
 fun PokemonDetailScreen(
-
     dominantColor: Color,
     pokemonName: String,
     pokemonId: Int,
@@ -60,7 +59,7 @@ fun PokemonDetailScreen(
     viewModel: PokemonDetailViewModel = hiltViewModel()
 ) {
 
-    val evolutionId: Int = 0
+    var evolutionId: String = ""
     val pokemonInfo = produceState<Resource<Pokemon>>(
         initialValue = Resource.Loading()
     ) {
@@ -79,11 +78,7 @@ fun PokemonDetailScreen(
         value = viewModel.getPokemonType(pokemonId.toString())
     }.value
 
-    val pokemonEvolutionChain = produceState<Resource<PokemonEvolutionChain>>(
-        initialValue = Resource.Loading()
-    ) {
-        value = viewModel.getPokemonEvolutionChain(pokemonId.toString())
-    }.value
+
 
     val pokemonGender = produceState<Resource<PokemonGender>>(
         initialValue = Resource.Loading()
@@ -265,13 +260,29 @@ fun PokemonDetailScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            pokemonEvolutionStateWrapper(
-                pokemonName = pokemonName,
-                pokemonEvolition = pokemonEvolutionChain,
-                colorList
-            )
 
 
+
+            if (pokemonDesc is Resource.Success) {
+                var evolutionUrl = pokemonDesc.data?.evolution_chain?.url.toString()
+                evolutionUrl = evolutionUrl.dropLast(1)
+                evolutionId = evolutionUrl.takeLastWhile {
+                        it.isDigit()
+
+                    }
+                val pokemonEvolutionChain = produceState<Resource<PokemonEvolutionChain>>(
+                    initialValue = Resource.Loading()
+                ) {
+                    value = viewModel.getPokemonEvolutionChain(evolutionId)
+                }.value
+
+                pokemonEvolutionStateWrapper(
+                    pokemonName = pokemonName,
+                    pokemonEvolition = pokemonEvolutionChain,
+                    colorList
+                )
+
+            }
         }
 
 
@@ -450,6 +461,8 @@ fun PokemonDesciptionStateWrapper(
 //                pokemonDesc = pokemonDesc.data!!,
 //                modifier = modifier
 //            )
+
+
         }
         is Resource.Error -> {
             Text(
@@ -512,7 +525,7 @@ fun PokemonDetailSection(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
-             .fillMaxSize()
+            .fillMaxSize()
     ) {
 
         Row(
@@ -990,7 +1003,7 @@ fun PokemonBaseStats(
             fontWeight = Bold,
             fontFamily = Roboto,
             color = MaterialTheme.colors.onSurface,
-            modifier = Modifier.padding(start = 30.dp, top=10.dp)
+            modifier = Modifier.padding(start = 30.dp, top = 10.dp)
         )
 
         Spacer(modifier = Modifier.height(20.dp))
