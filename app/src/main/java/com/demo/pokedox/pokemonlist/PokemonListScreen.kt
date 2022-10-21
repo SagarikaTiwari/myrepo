@@ -53,6 +53,7 @@ import com.demo.pokedox.data.models.PokedexListEntry
 import com.demo.pokedox.data.remote.responses.Type
 import com.demo.pokedox.util.PokemonParser
 import com.demo.pokedox.viewmodel.PokemonListViewModel
+import com.demo.pokedox.widget.FilterBox
 import com.plcoding.jetpackcomposepokedex.ui.theme.searchBarBackgroundColor
 import dashedBorder
 import kotlinx.coroutines.launch
@@ -63,6 +64,9 @@ fun PokemonListScreen(
     viewModel: PokemonListViewModel = hiltViewModel()
 ) {
 
+    var openfilterialog by remember {
+        mutableStateOf(false) // Initially dialog is closed
+    }
 
     Surface(
         color = MaterialTheme.colors.background,
@@ -126,7 +130,19 @@ fun PokemonListScreen(
                     modifier = Modifier
                         .fillMaxWidth(1f)
                         .padding(15.dp)
+                        .clickable {
+                            openfilterialog = true
+                        }
                 )
+
+                if (openfilterialog) {
+                    FilterBox(
+                        filterName = "Type",
+                        listOf("Normal", "Flying", "Poison", "Ground", "Rock"),
+                        expanded = true
+
+                    )
+                }
             }
 
 
@@ -272,10 +288,10 @@ fun PokedexEntry(
         mutableStateOf(defaultDominantColor)
     }
     var colorList = mutableListOf<Color>()
-     if (entry.typeList.size > 1) {
+    if (entry.typeList.size > 1) {
         for (i in entry.typeList) {
             colorList.add(PokemonParser.getTypeColor(i))
-         }
+        }
     } else {
         for (i in entry.typeList) {
             colorList.add(PokemonParser.getTypeColor(i))
@@ -401,55 +417,7 @@ fun RetrySection(
 }
 
 
-@Composable
-fun SearchView(state: MutableState<TextFieldValue>) {
-    TextField(
-        value = state.value,
-        onValueChange = { value ->
-            state.value = value
-        },
-        modifier = Modifier
-            .fillMaxWidth(),
-        textStyle = TextStyle(color = Color.White, fontSize = 18.sp),
-        leadingIcon = {
-            Icon(
-                Icons.Default.Search,
-                contentDescription = "",
-                modifier = Modifier
-                    .padding(15.dp)
-                    .size(24.dp)
-            )
-        },
-        trailingIcon = {
-            if (state.value != TextFieldValue("")) {
-                IconButton(
-                    onClick = {
-                        state.value =
-                            TextFieldValue("") // Remove text from TextField when you press the 'X' icon
-                    }
-                ) {
-                    Icon(
-                        Icons.Default.Close,
-                        contentDescription = "",
-                        modifier = Modifier
-                            .padding(15.dp)
-                            .size(24.dp)
-                    )
-                }
-            }
-        },
-        singleLine = true,
-        shape = RectangleShape, // The TextFiled has rounded corners top left and right by default
-        colors = TextFieldDefaults.textFieldColors(
-            textColor = Color.White,
-            cursorColor = Color.White,
-            leadingIconColor = Color.White,
-            trailingIconColor = Color.White,
-            backgroundColor = colorResource(id = R.color.teal_200),
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent
-        )
-    )
-}
+
+
+
 

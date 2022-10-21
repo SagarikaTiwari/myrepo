@@ -4,30 +4,19 @@ package com.demo.pokedox.pokemon
 import Roboto
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement.Center
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.modifier.modifierLocalConsumer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
@@ -37,29 +26,25 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.demo.pokedox.R
 import com.demo.pokedox.data.remote.responses.*
 import com.demo.pokedox.util.PokemonParser
 import com.demo.pokedox.util.PokemonParser.getTypeColor
+import com.demo.pokedox.util.PokemonParser.getTypeColorFromString
 import com.demo.pokedox.util.PokemonParser.parseStatToAbbr
 import com.demo.pokedox.util.PokemonParser.parseStatToColor
 import com.demo.pokedox.util.Resource
 import com.demo.pokedox.viewmodel.PokemonDetailViewModel
-import com.google.android.material.internal.ViewUtils.RelativePadding
 import dashedBorder
-import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
+import java.sql.Types
 import kotlin.math.round
 
 
@@ -97,7 +82,7 @@ fun PokemonDetailScreen(
     val pokemonEvolutionChain = produceState<Resource<PokemonEvolutionChain>>(
         initialValue = Resource.Loading()
     ) {
-        value = viewModel.getPokemonEvolutionChain(evolutionId.toString())
+        value = viewModel.getPokemonEvolutionChain(pokemonId.toString())
     }.value
 
     val pokemonGender = produceState<Resource<PokemonGender>>(
@@ -120,6 +105,7 @@ fun PokemonDetailScreen(
         Column(
             modifier = Modifier.verticalScroll(scrollState)
         ) {
+            var colorList = mutableListOf<Color>()
 
 
             PokemonTopSection(
@@ -131,9 +117,9 @@ fun PokemonDetailScreen(
             )
 
             PokemonDesciptionStateWrapper(pokemonDesc = pokemonDesc)
+
             if (pokemonInfo is Resource.Success) {
 
-                var colorList = mutableListOf<Color>()
                 if (pokemonInfo.data?.types?.size!! > 1) {
                     for (i in pokemonInfo.data.types) {
                         colorList.add(PokemonParser.getTypeColor(i))
@@ -250,6 +236,42 @@ fun PokemonDetailScreen(
             PokemonDetailStateWrapper(
                 pokemonInfo = pokemonInfo,
             )
+            Spacer(modifier = Modifier.height(10.dp))
+
+
+            Text(
+                text = "Weak Against",
+                fontWeight = Bold,
+                color = MaterialTheme.colors.onSurface,
+                modifier = Modifier
+                    .padding(start = 10.dp)
+
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            PokemonWeakAgainstStateWrapper(pokemonType = pokemonWeaknessAndAbility)
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(
+                text = "Evolution Chain ",
+                fontWeight = Bold,
+                color = MaterialTheme.colors.onSurface,
+                modifier = Modifier
+                    .padding(start = 10.dp)
+
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            pokemonEvolutionStateWrapper(
+                pokemonName = pokemonName,
+                pokemonEvolition = pokemonEvolutionChain,
+                colorList
+            )
+
+
         }
 
 
@@ -343,15 +365,24 @@ fun pokemonTypeStateWrapper(
 
 @Composable
 fun pokemonEvolutionStateWrapper(
+    pokemonName: String,
     pokemonEvolition: Resource<PokemonEvolutionChain>,
+    colorList: List<Color>,
     modifier: Modifier = Modifier,
-    loadingModifier: Modifier
+    loadingModifier: Modifier = Modifier
 ) {
 
     when (pokemonEvolition) {
 
         is Resource.Success -> {
 
+            var evolvedName = mutableListOf<String>()
+
+            for (item in pokemonEvolition.data!!.chain.evolves_to) {
+                evolvedName.add(item.species.name)
+            }
+
+            PokemonEvolutionSection(pokemonName, evolvedName, colorList)
 
         }
         is Resource.Error -> {
@@ -369,6 +400,42 @@ fun pokemonEvolutionStateWrapper(
         }
     }
 }
+
+@Composable
+fun PokemonWeakAgainstStateWrapper(
+    pokemonType: Resource<PokemonType>,
+    modifier: Modifier = Modifier,
+    loadingModifier: Modifier = Modifier
+) {
+    when (pokemonType) {
+
+        is Resource.Success -> {
+
+            var typeList = mutableListOf<String>()
+            for (item in pokemonType.data!!.damage_relations.double_damage_from) {
+                typeList.add(item.name)
+            }
+
+            PokemonWeakAgainstSection(types = typeList)
+
+        }
+        is Resource.Error -> {
+            Text(
+                text = pokemonType.message!!,
+                color = Color.Red,
+                modifier = modifier
+            )
+        }
+        is Resource.Loading -> {
+            CircularProgressIndicator(
+                color = MaterialTheme.colors.primary,
+                modifier = loadingModifier
+            )
+        }
+
+    }
+}
+
 
 @Composable
 fun PokemonDesciptionStateWrapper(
@@ -445,8 +512,7 @@ fun PokemonDetailSection(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
-            .padding(top = 20.dp)
-            .fillMaxSize()
+             .fillMaxSize()
     ) {
 
         Row(
@@ -462,7 +528,9 @@ fun PokemonDetailSection(
             pokeminHeight = pokemonInfo.height,
             pokemonInfo = pokemonInfo
         )
+
         PokemonBaseStats(pokemonInfo = pokemonInfo)
+
     }
 
 }
@@ -497,6 +565,139 @@ fun PokemonTypeSection(types: List<Type>) {
     }
 }
 
+
+@Composable
+fun PokemonEvolutionSection(
+    pokemonName: String, evolutionName: List<String>, colorList: List<Color>,
+) {
+
+
+    Row(
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(start = 20.dp)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(170.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .aspectRatio(1f)
+                .padding(10.dp)
+                .dashedBorder(
+                    width = 1.dp,
+                    color = colorResource(id = R.color.border_color),
+                    shape = MaterialTheme.shapes.small, on = 5.dp, off = 5.dp
+                )
+                .background(
+
+                    Brush.verticalGradient(
+                        colors = colorList
+
+                    )
+                )
+
+
+        ) {
+            val painter = rememberAsyncImagePainter(
+                // model = it.front_default
+                model = "https://img.pokemondb.net/artwork/large/${pokemonName}.jpg"
+
+            )
+            val painterState = painter.state
+            Image(
+                painter = painter,
+                contentDescription = "image",
+                modifier = Modifier
+                    .size(100.dp)
+                    .offset(y = 10.dp)
+
+            )
+
+
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Image(painter = painterResource(id = R.drawable.next), contentDescription = "next")
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(170.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .aspectRatio(1f)
+                .padding(10.dp)
+                .dashedBorder(
+                    width = 1.dp,
+                    color = colorResource(id = R.color.border_color),
+                    shape = MaterialTheme.shapes.small, on = 5.dp, off = 5.dp
+                )
+                .background(
+
+                    Brush.verticalGradient(
+                        colors = colorList
+
+                    )
+                )
+
+
+        ) {
+            val painter = rememberAsyncImagePainter(
+                // model = it.front_default
+                model = "https://img.pokemondb.net/artwork/large/${evolutionName.get(0)}.jpg"
+
+            )
+            val painterState = painter.state
+            Image(
+                painter = painter,
+                contentDescription = "image",
+                modifier = Modifier
+                    .size(100.dp)
+                    .offset(y = 10.dp)
+
+            )
+
+
+        }
+
+    }
+}
+
+@Composable
+fun PokemonWeakAgainstSection(types: List<String>) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(0.5f)
+            .padding(start = 15.dp)
+    ) {
+
+
+        for (type in types) {
+
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .weight(1f)
+                    .size(35.dp)
+                    .padding(horizontal = 2.dp, vertical = 1.dp)
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(getTypeColorFromString(type))
+                    .shadow(elevation = 1.dp, shape = RoundedCornerShape(2.dp))
+            ) {
+
+                Text(
+                    text = type.capitalize(java.util.Locale.ROOT),
+                    color = Color(0xff2e3156),
+                    fontSize = 13.sp
+                )
+            }
+        }
+    }
+}
 
 @Composable
 fun PokemonDetailDataSection(
@@ -789,7 +990,7 @@ fun PokemonBaseStats(
             fontWeight = Bold,
             fontFamily = Roboto,
             color = MaterialTheme.colors.onSurface,
-            modifier = Modifier.padding(start = 30.dp)
+            modifier = Modifier.padding(start = 30.dp, top=10.dp)
         )
 
         Spacer(modifier = Modifier.height(20.dp))

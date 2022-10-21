@@ -33,6 +33,31 @@ object PokemonParser {
         }
     }
 
+    fun getTypeColorFromString(string: String): androidx.compose.ui.graphics.Color {
+        return when (string.toLowerCase(Locale.ROOT)) {
+            "normal" -> TypeNormal
+            "fire" -> TypeFire
+            "water" -> TypeWater
+            "electric" -> TypeElectric
+            "grass" -> TypeGrass
+            "ice" -> TypeIce
+            "ghost" -> TypeGhost
+            "steel" -> TypeSteel
+            "dragon" -> TypeDragon
+            "dark" -> TypeDark
+            "grass" -> TypeGrass
+            "fairy" -> TypeFairy
+            "fighting" -> TypeFighting
+            "poison" -> TypePoison
+            "psychic" -> TypePsychic
+            "bug" -> TypeBug
+            "rock" -> TypeRock
+            "flying" -> TypeFlying
+            "ground" -> TypeGround
+            else -> androidx.compose.ui.graphics.Color.Black
+        }
+    }
+
     fun parseStatToColor(stat: Stat): androidx.compose.ui.graphics.Color {
 
         return when (stat.stat.name.toLowerCase()) {
